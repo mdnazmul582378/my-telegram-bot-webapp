@@ -2,179 +2,484 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Creator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Movie Upload Web App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* CSS Variables for Telegram Theme Parameters */
+        :root {
+            --tg-theme-bg-color: #f3f4f6;
+            --tg-theme-text-color: #1f2937;
+            --tg-theme-hint-color: #6b7280;
+            --tg-theme-link-color: #3b82f6;
+            --tg-theme-button-color: #3b82f6;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #ffffff;
+            --tg-theme-field-bg-color: #f9fafb;
+            --tg-theme-field-border-color: #e5e7eb;
+
+            /* Custom colors based on Telegram theme */
+            --primary-color: var(--tg-theme-button-color);
+            --secondary-color: var(--tg-theme-secondary-bg-color);
+            --text-color: var(--tg-theme-text-color);
+            --hint-color: var(--tg-theme-hint-color);
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --border-radius: 0.75rem; /* Consistent border-radius */
+        }
+
+        /* Base HTML and Body Styles */
+        html {
+            height: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--tg-theme-bg-color, #f0f2f5);
-            color: var(--tg-theme-text-color, #333);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--tg-theme-bg-color) 0%, var(--tg-theme-bg-color) 100%);
+            color: var(--text-color);
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent body scrolling */
             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Align to top */
-            min-height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
+            flex-direction: column;
+            touch-action: none; /* Disable default touch actions like pinch-zoom */
+            -webkit-overflow-scrolling: none; /* Disable momentum scrolling for iOS */
+            padding: 2px; /* 2px padding on all sides */
+            box-sizing: border-box; /* Include padding in element's total width and height */
         }
-        .container {
-            background-color: var(--tg-theme-secondary-bg-color, #ffffff);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+        /* Main Container Styling */
+        .main-container {
+            background: var(--secondary-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 600px;
-            margin-top: 20px; /* Add some margin from the top */
+            height: calc(100vh - 4px); /* Full viewport height minus 2px top/bottom padding */
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease-out;
+            box-sizing: border-box;
+            overflow: hidden; /* Ensure content inside doesn't overflow this container */
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header and Fixed Top Section */
+        .fixed-header {
+            padding: 1.5rem;
+            padding-bottom: 0.5rem; /* Reduce padding bottom for tighter spacing */
+            text-align: center;
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .app-title {
+            font-size: 1.8rem; /* Larger font for app title */
+            font-weight: 700;
+            color: var(--primary-color); /* Use primary color for title */
+            margin-bottom: 1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* Subtle text shadow */
+        }
+
+        /* Form Content Area (Scrollable) */
+        .form-scroll-area {
+            flex: 1; /* Take remaining space */
+            overflow-y: auto; /* Only this area scrolls */
+            padding: 0 1.5rem; /* Horizontal padding */
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 1rem; /* Padding at the bottom of scrollable area */
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--hint-color);
+            margin-bottom: 0.5rem;
+            display: block;
+            transition: color 0.2s ease;
+        }
+
         input, textarea {
-            background-color: var(--tg-theme-field-bg-color, #f8f9fa);
-            color: var(--tg-theme-text-color, #333);
-            border: 1px solid var(--tg-theme-field-border-color, #ddd);
-            border-radius: 8px;
-            padding: 10px 14px;
+            background: var(--tg-theme-field-bg-color);
+            color: var(--text-color);
+            border: 2px solid var(--tg-theme-field-border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
             width: 100%;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
+            font-size: 1rem;
+            transition: all 0.2s ease;
         }
+
         input:focus, textarea:focus {
-            border-color: var(--tg-theme-button-color, #007bff);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
             outline: none;
         }
-        label {
-            color: var(--tg-theme-hint-color, #666);
-            font-weight: 500;
-            margin-bottom: 6px;
-            display: block;
+
+        input:invalid:not(:placeholder-shown) {
+            border-color: var(--error-color);
         }
-        .add-link-btn {
-            background-color: var(--tg-theme-button-color, #007bff);
-            color: var(--tg-theme-button-text-color, #fff);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: background-color 0.2s;
+
+        /* Custom File Input Styling */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
         }
-        .add-link-btn:hover {
-            background-color: var(--tg-theme-button-color, #007bff); /* Keep consistent hover for TG themes */
-            filter: brightness(90%);
+
+        .file-input-wrapper input[type="file"] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
         }
-        .link-input-group {
+
+        .file-input-button {
+            background: var(--primary-color);
+            color: var(--tg-theme-button-text-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-        .remove-link-btn {
-            background-color: #ef4444; /* Red color for remove */
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
+            justify-content: center;
+            gap: 0.5rem;
             font-weight: 600;
-            transition: background-color 0.2s;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        .remove-link-btn:hover {
-            background-color: #dc2626;
+
+        .file-input-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
         }
-        .error-message {
-            color: #ef4444;
+
+        .file-name-display {
+            margin-top: 0.5rem;
             font-size: 0.875rem;
-            margin-top: 4px;
+            color: var(--hint-color);
+            word-break: break-all;
+        }
+
+
+        /* Link Buttons and Input Groups */
+        .add-link-btn, .remove-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .add-link-btn {
+            background: var(--primary-color);
+            color: var(--tg-theme-button-text-color);
+        }
+
+        .add-link-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .remove-link-btn {
+            background: var(--error-color);
+            color: #ffffff;
+        }
+
+        .remove-link-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .link-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.02);
+            margin-bottom: 0.75rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Messages and Validation */
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success-color);
+            font-size: 0.875rem;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --tg-theme-bg-color: #1a1a1a; /* Darker background */
+                --tg-theme-text-color: #e0e0e0; /* Lighter text */
+                --tg-theme-hint-color: #a0a0a0; /* Lighter hint text */
+                --tg-theme-secondary-bg-color: #2a2a2a; /* Darker secondary background */
+                --tg-theme-field-bg-color: #3a3a3a; /* Darker input field background */
+                --tg-theme-field-border-color: #5a5a5a; /* Darker input field border */
+            }
+            body {
+                background: linear-gradient(135deg, var(--tg-theme-bg-color) 0%, #111111 100%);
+            }
+            .main-container {
+                background: var(--tg-theme-secondary-bg-color);
+            }
+            input, textarea {
+                background: var(--tg-theme-field-bg-color);
+                border-color: var(--tg-theme-field-border-color);
+                color: var(--tg-theme-text-color);
+            }
+            .link-input-group {
+                background: rgba(255, 255, 255, 0.05); /* Slightly visible in dark mode */
+            }
+            ::placeholder {
+                color: var(--hint-color);
+            }
+        }
+
+        /* Accessibility improvements */
+        [aria-invalid="true"] + .error-message {
+            display: block;
+        }
+
+        button:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* Handle iOS safe areas */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            body {
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-top: env(safe-area-inset-top);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+            .main-container {
+                height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 4px);
+            }
         }
     </style>
 </head>
-<body class="p-4">
-    <div class="container space-y-6">
-        <h1 class="text-2xl font-bold text-center mb-6">Create New Post</h1>
+<body>
+    <div class="main-container">
+        <div class="fixed-header">
+            <h1 class="app-title">Movie Upload Web App</h1>
+            <h2 class="text-xl font-bold text-center mb-4">Create New Post</h2>
+            <div class="form-group">
+                <label for="title">Title <span class="text-red-500">*</span></label>
+                <input type="text" id="title" required aria-describedby="titleError" placeholder="Enter post title" autocomplete="off">
+                <p id="titleError" class="error-message">Title is required.</p>
+            </div>
 
-        <div class="form-group">
-            <label for="title" class="text-sm">Title:</label>
-            <input type="text" id="title" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-3" placeholder="Enter post title" required>
-            <p id="titleError" class="error-message hidden">Title is required.</p>
-        </div>
+            <div class="form-group">
+                <label for="thumbnail-url">Thumbnail URL (optional)</label>
+                <input type="url" id="thumbnail-url" aria-describedby="thumbnailUrlError" placeholder="e.g., https://example.com/image.jpg" autocomplete="off">
+                <p id="thumbnailUrlError" class="error-message">Invalid URL format.</p>
+            </div>
 
-        <div class="form-group">
-            <label for="thumbnail" class="text-sm">Thumbnail URL (optional):</label>
-            <input type="url" id="thumbnail" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-3" placeholder="e.g., https://example.com/image.jpg">
-        </div>
-
-        <div id="links-container" class="space-y-4">
-            <label class="text-sm">Links:</label>
-            <div class="link-input-group flex items-center gap-2">
-                <input type="text" class="link-name-input flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-3" placeholder="Link Name (e.g., Link 1)">
-                <input type="url" class="link-url-input flex-2 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-3" placeholder="Link URL (e.g., https://example.com/page)">
-                <button type="button" class="remove-link-btn hidden">Remove</button>
+            <div class="form-group">
+                <label for="thumbnail-file">Upload Thumbnail (optional)</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="thumbnail-file" accept="image/*">
+                    <button type="button" class="file-input-button">
+                        <i class="fas fa-upload"></i> Choose Image
+                    </button>
+                </div>
+                <p id="fileNameDisplay" class="file-name-display"></p>
+                <p id="thumbnailFileError" class="error-message">File upload error.</p>
             </div>
         </div>
-        <button type="button" id="add-link-btn" class="add-link-btn mt-4 w-full">Add Another Link</button>
+
+        <form id="postForm" novalidate class="form-scroll-area">
+            <div id="links-container" class="space-y-2">
+                <label>Links</label>
+                <!-- Initial link input group will be added by JS -->
+            </div>
+        </form>
+
+        <div class="fixed-bottom-controls p-4 flex-shrink-0">
+            <button type="button" id="add-link-btn" class="add-link-btn w-full mb-4">
+                <i class="fas fa-plus"></i> Add Another Link
+            </button>
+            <p id="successMessage" class="success-message">Post created successfully!</p>
+        </div>
     </div>
 
     <script>
         const Telegram = window.Telegram.WebApp;
-
         Telegram.ready();
-        Telegram.expand(); // Expand the Web App to full height
+        Telegram.expand(); // Make the web app expand to full height
 
+        // Get elements
+        const form = document.getElementById('postForm');
         const titleInput = document.getElementById('title');
-        const thumbnailInput = document.getElementById('thumbnail');
+        const thumbnailUrlInput = document.getElementById('thumbnail-url');
+        const thumbnailFileInput = document.getElementById('thumbnail-file');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
         const linksContainer = document.getElementById('links-container');
         const addLinkBtn = document.getElementById('add-link-btn');
         const titleError = document.getElementById('titleError');
+        const thumbnailUrlError = document.getElementById('thumbnailUrlError');
+        const thumbnailFileError = document.getElementById('thumbnailFileError');
+        const successMessage = document.getElementById('successMessage');
 
-        let linkCounter = 1;
+        let linkCounter = 1; // Start counter from 1 for initial link
+        let uploadedFileBase64 = null; // To store base64 of uploaded image
 
+        // Function to create a new link input group
         function createLinkInputGroup(name = '', url = '') {
             const div = document.createElement('div');
-            div.className = 'link-input-group flex items-center gap-2 mt-2';
+            div.className = 'link-input-group';
+            div.dataset.index = linkCounter; // Store index for potential future use
             div.innerHTML = `
-                <input type="text" class="link-name-input flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-3" placeholder="Link Name (e.g., Link ${linkCounter})" value="${name}">
-                <input type="url" class="link-url-input flex-2 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-3" placeholder="Link URL (e.g., https://example.com/page)" value="${url}">
-                <button type="button" class="remove-link-btn bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg">Remove</button>
+                <input type="text" class="link-name-input" placeholder="Link Name (e.g., Watch Now)" value="${name}" aria-label="Link Name ${linkCounter}">
+                <input type="url" class="link-url-input" placeholder="Link URL (e.g., https://example.com/watch)" value="${url}" aria-label="Link URL ${linkCounter}">
+                <button type="button" class="remove-link-btn" aria-label="Remove Link ${linkCounter}"><i class="fas fa-trash"></i></button>
             `;
-            
             const removeBtn = div.querySelector('.remove-link-btn');
             removeBtn.onclick = () => {
-                div.remove();
-                updateMainButtonState();
+                div.remove(); // Remove the entire link group
+                updateMainButtonState(); // Update Telegram MainButton state
+                updateRemoveButtonsVisibility(); // Adjust visibility of remove buttons
             };
+            linkCounter++; // Increment counter for next link
             return div;
         }
 
-        // Initial link input group
-        linksContainer.appendChild(createLinkInputGroup(`Link ${linkCounter++}`));
+        // Function to update the visibility of remove link buttons
+        // The first link's remove button should be hidden if there's only one link
+        function updateRemoveButtonsVisibility() {
+            const linkGroups = linksContainer.querySelectorAll('.link-input-group');
+            linkGroups.forEach((group, index) => {
+                const removeBtn = group.querySelector('.remove-link-btn');
+                removeBtn.classList.toggle('hidden', linkGroups.length === 1); // Hide if only one link
+            });
+        }
 
+        // Add the initial link input group
+        linksContainer.appendChild(createLinkInputGroup('', ''));
+        updateRemoveButtonsVisibility();
+
+        // Event listener for "Add Another Link" button
         addLinkBtn.onclick = () => {
-            linksContainer.appendChild(createLinkInputGroup(`Link ${linkCounter++}`));
+            linksContainer.appendChild(createLinkInputGroup('', ''));
             updateMainButtonState();
+            updateRemoveButtonsVisibility();
         };
 
+        // Handle thumbnail file input change
+        thumbnailFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                fileNameDisplay.textContent = `Selected: ${file.name}`;
+                thumbnailUrlInput.value = ''; // Clear URL input if file is selected
+                thumbnailUrlInput.setAttribute('aria-invalid', 'false');
+                thumbnailUrlError.style.display = 'none';
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedFileBase64 = e.target.result.split(',')[1]; // Get base64 string
+                    validateForm(); // Re-validate form
+                };
+                reader.onerror = () => {
+                    fileNameDisplay.textContent = 'Error reading file.';
+                    thumbnailFileError.style.display = 'block';
+                    uploadedFileBase64 = null;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                fileNameDisplay.textContent = '';
+                uploadedFileBase64 = null;
+            }
+            updateMainButtonState();
+        });
+
+        // Clear file input if URL is typed
+        thumbnailUrlInput.addEventListener('input', () => {
+            if (thumbnailUrlInput.value.trim()) {
+                thumbnailFileInput.value = ''; // Clear file input
+                fileNameDisplay.textContent = '';
+                uploadedFileBase64 = null;
+            }
+            validateForm();
+            updateMainButtonState();
+        });
+
+
+        // Function to validate the form inputs
         function validateForm() {
             let isValid = true;
-            if (titleInput.value.trim() === '') {
-                titleInput.classList.add('border-red-500');
-                titleError.classList.remove('hidden');
+
+            // Validate Title
+            if (!titleInput.value.trim()) {
+                titleInput.setAttribute('aria-invalid', 'true');
                 isValid = false;
             } else {
-                titleInput.classList.remove('border-red-500');
-                titleError.classList.add('hidden');
+                titleInput.setAttribute('aria-invalid', 'false');
             }
 
+            // Validate Thumbnail URL (if provided)
+            if (thumbnailUrlInput.value.trim() && !thumbnailUrlInput.checkValidity()) {
+                thumbnailUrlInput.setAttribute('aria-invalid', 'true');
+                thumbnailUrlError.style.display = 'block';
+                isValid = false;
+            } else {
+                thumbnailUrlInput.setAttribute('aria-invalid', 'false');
+                thumbnailUrlError.style.display = 'none';
+            }
+
+            // Validate Link URLs
             const linkUrlInputs = document.querySelectorAll('.link-url-input');
             linkUrlInputs.forEach(input => {
-                if (input.value.trim() !== '' && !input.checkValidity()) {
-                    input.classList.add('border-red-500');
+                if (input.value.trim() && !input.checkValidity()) {
+                    input.setAttribute('aria-invalid', 'true');
                     isValid = false;
                 } else {
-                    input.classList.remove('border-red-500');
+                    input.setAttribute('aria-invalid', 'false');
                 }
             });
+
             return isValid;
         }
 
+        // Function to collect all form data
         function getData() {
             const links = [];
             document.querySelectorAll('.link-input-group').forEach(group => {
                 const nameInput = group.querySelector('.link-name-input');
                 const urlInput = group.querySelector('.link-url-input');
+                // Only add links that have both a name and a URL
                 if (nameInput.value.trim() && urlInput.value.trim()) {
                     links.push({
                         name: nameInput.value.trim(),
@@ -183,16 +488,29 @@
                 }
             });
 
+            let thumbnailValue = '';
+            let thumbnailType = 'none';
+
+            if (uploadedFileBase64) {
+                thumbnailValue = uploadedFileBase64;
+                thumbnailType = 'base64';
+            } else if (thumbnailUrlInput.value.trim()) {
+                thumbnailValue = thumbnailUrlInput.value.trim();
+                thumbnailType = 'url';
+            }
+
             return {
                 title: titleInput.value.trim(),
-                thumbnail: thumbnailInput.value.trim(),
+                thumbnail: thumbnailValue,
+                thumbnail_type: thumbnailType, // Indicate if it's a URL or base64
                 links: links
             };
         }
 
+        // Function to update the Telegram MainButton state (show/hide/enable/disable)
         function updateMainButtonState() {
-            if (titleInput.value.trim() !== '') {
-                Telegram.MainButton.setText('Send Post to Bot');
+            if (titleInput.value.trim() && validateForm()) { // Enable only if title is present and form is valid
+                Telegram.MainButton.setText('Create Post');
                 Telegram.MainButton.show();
                 Telegram.MainButton.enable();
             } else {
@@ -201,33 +519,67 @@
             }
         }
 
-        // Listen for input changes to update MainButton state
-        titleInput.addEventListener('input', updateMainButtonState);
-        linksContainer.addEventListener('input', updateMainButtonState);
+        // Listen for input changes to validate and update MainButton
+        form.addEventListener('input', () => {
+            validateForm();
+            updateMainButtonState();
+        });
 
-        // Initial state of the main button
+        titleInput.addEventListener('input', updateMainButtonState);
+        thumbnailUrlInput.addEventListener('input', updateMainButtonState);
+
+
+        // Initial update of MainButton state on page load
         updateMainButtonState();
 
+        // Event listener for Telegram MainButton click
         Telegram.onEvent('mainButtonClicked', () => {
             if (validateForm()) {
                 const data = getData();
-                Telegram.sendData(JSON.stringify(data));
+                Telegram.sendData(JSON.stringify(data)); // Send data to the bot
+                
+                successMessage.style.display = 'block'; // Show success message
+                setTimeout(() => successMessage.style.display = 'none', 3000); // Hide after 3 seconds
+                
+                // Reset the form after sending data
+                form.reset();
+                thumbnailFileInput.value = '';
+                fileNameDisplay.textContent = '';
+                uploadedFileBase64 = null;
+
+                linksContainer.innerHTML = ''; // Clear existing links
+                linkCounter = 1; // Reset link counter
+                linksContainer.appendChild(createLinkInputGroup('', '')); // Add a fresh initial link
+                updateRemoveButtonsVisibility(); // Update remove buttons visibility
+                updateMainButtonState(); // Update MainButton state
             } else {
                 Telegram.showAlert('Please fill in all required fields and ensure URLs are valid.');
             }
         });
 
-        // Set theme colors
-        document.documentElement.style.setProperty('--tg-theme-bg-color', Telegram.themeParams.bg_color);
-        document.documentElement.style.setProperty('--tg-theme-text-color', Telegram.themeParams.text_color);
-        document.documentElement.style.setProperty('--tg-theme-hint-color', Telegram.themeParams.hint_color);
-        document.documentElement.style.setProperty('--tg-theme-link-color', Telegram.themeParams.link_color);
-        document.documentElement.style.setProperty('--tg-theme-button-color', Telegram.themeParams.button_color);
-        document.documentElement.style.setProperty('--tg-theme-button-text-color', Telegram.themeParams.button_text_color);
-        document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', Telegram.themeParams.secondary_bg_color);
-        document.documentElement.style.setProperty('--tg-theme-field-bg-color', Telegram.themeParams.field_bg_color);
-        document.documentElement.style.setProperty('--tg-theme-field-border-color', Telegram.themeParams.field_border_color);
+        // Apply Telegram theme parameters to CSS variables
+        function applyTelegramTheme() {
+            Object.entries(Telegram.themeParams).forEach(([key, value]) => {
+                document.documentElement.style.setProperty(`--tg-theme-${key.replace(/_/g, '-')}`, value);
+            });
+        }
+        applyTelegramTheme(); // Apply theme on initial load
 
+        // Listen for theme changes in Telegram app
+        Telegram.onEvent('themeChanged', applyTelegramTheme);
+
+        // Prevent pinch zoom on mobile devices
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('gesturechange', (e) => e.preventDefault());
+        document.addEventListener('gestureend', (e) => e.preventDefault());
+
+        // Handle viewport height for mobile browsers (especially iOS)
+        function setVH() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH(); // Set on initial load
+        window.addEventListener('resize', setVH); // Update on resize
     </script>
 </body>
 </html>
